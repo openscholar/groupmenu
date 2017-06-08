@@ -158,7 +158,7 @@ class GroupMenuConfigOverrides implements ConfigFactoryOverrideInterface {
     $menus = [];
     foreach ($group_contents as $group_content) {
       /** @var \Drupal\group\Entity\GroupContentInterface $group_content */
-      if ($group_content->getGroup()->hasPermission("edit $plugin_id entity", $account)) {
+      if ($group_content->getGroup()->hasPermission("update $plugin_id entity", $account)) {
         $menus[] = $group_content->getEntity()->id();
       }
     }
