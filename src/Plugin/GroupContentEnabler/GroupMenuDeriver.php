@@ -15,7 +15,7 @@ class GroupMenuDeriver extends DeriverBase {
   public function getDerivativeDefinitions($base_plugin_definition) {
     $this->derivatives['menu'] = [
       'label' => t('Group menu'),
-      'description' => t("Adds menu's to groups"),
+      'description' => t("Adds menus to groups"),
     ] + $base_plugin_definition;
 
     return $this->derivatives;

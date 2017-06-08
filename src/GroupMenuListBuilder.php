@@ -6,7 +6,7 @@ use Drupal\group\Entity\GroupContentType;
 use \Drupal\menu_ui\MenuListBuilder;
 
 /**
- * Override the default menu overview to exclude group menu's.
+ * Override the default menu overview to exclude group menus.
  */
 class GroupMenuListBuilder extends MenuListBuilder {
 
@@ -35,7 +35,7 @@ class GroupMenuListBuilder extends MenuListBuilder {
       }
     }
 
-    // Load all menu's not used as group content.
+    // Load all menus not used as group content.
     $query = $this->getStorage()->getQuery()
       ->condition($this->entityType->getKey('id'), $menus, 'NOT IN')
       ->sort($this->entityType->getKey('id'));

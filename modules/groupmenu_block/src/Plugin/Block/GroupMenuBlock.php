@@ -31,7 +31,7 @@ class GroupMenuBlock extends BlockBase {
    *   An array of menu objects keyed by menu name.
    */
   protected function getGroupMenus(GroupInterface $group) {
-    return \Drupal::service('groupmenu.menu')->loadUserGroupMenusByGroup('view', $group);
+    return \Drupal::service('groupmenu.menu')->loadUserGroupMenusByGroup('view', $group->id());
   }
 
   /**

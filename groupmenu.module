@@ -66,7 +66,7 @@ function groupmenu_module_implements_alter(&$implementations, $hook) {
 function groupmenu_form_alter(&$form, FormStateInterface $form_state, $form_id) {
   $form_object = $form_state->getFormObject();
 
-  // Filter menu options to group menu's.
+  // Filter menu options to group menus.
   if ($form_object instanceof MenuLinkEditForm || $form_object instanceof MenuLinkContentForm) {
     $account = \Drupal::currentUser();
     if (!$account->hasPermission('administer menu')) {
@@ -74,7 +74,7 @@ function groupmenu_form_alter(&$form, FormStateInterface $form_state, $form_id) 
     }
   }
 
-  // Add setting to group node plugins to allow group menu's.
+  // Add setting to group node plugins to allow group menus.
   if ($form_object instanceof GroupContentTypeForm) {
     /** @var \Drupal\group\Entity\GroupContentType $group_content_type */
     $group_content_type = $form_object->getEntity();
@@ -82,7 +82,7 @@ function groupmenu_form_alter(&$form, FormStateInterface $form_state, $form_id) 
       $configuration = $group_content_type->get('plugin_config');
       $form['node_form_group_menu'] = [
         '#type' => 'checkbox',
-        '#title' => t("Add group menu's to node form"),
+        '#title' => t("Add group menus to node form"),
         '#default_value' => $configuration['node_form_group_menu'] ?: FALSE,
       ];
     }
@@ -120,7 +120,7 @@ function groupmenu_form_node_form_alter(&$form, FormStateInterface $form_state) 
  * @param array &$options
  *   Form options to filter.
  * @param \Drupal\group\Entity\GroupInterface $group
- *   Optionally filter menu's by group.
+ *   Optionally filter menus by group.
  *
  * @return bool
  *   FALSE if there is no allowed menu items,
@@ -128,7 +128,7 @@ function groupmenu_form_node_form_alter(&$form, FormStateInterface $form_state) 
  */
 function groupmenu_filter_parent_options(array &$options, GroupInterface $group = NULL) {
   $groupmenu_service = \Drupal::service('groupmenu.menu');
-  $allowed_menus = $group ? $groupmenu_service->loadUserGroupMenusByGroup('edit', $group) : $groupmenu_service->loadUserGroupMenus('edit');
+  $allowed_menus = $group ? $groupmenu_service->loadUserGroupMenusByGroup('edit', $group->id()) : $groupmenu_service->loadUserGroupMenus('edit');
   if (count($allowed_menus) && is_array($options)) {
     $option_keys = array_keys($options);
     foreach ($option_keys as $option_key) {

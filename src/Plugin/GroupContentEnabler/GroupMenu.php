@@ -16,7 +16,7 @@ use Drupal\Core\Form\FormStateInterface;
  * @GroupContentEnabler(
  *   id = "group_menu",
  *   label = @Translation("Group menu"),
- *   description = @Translation("Adds menu's to groups both publicly and privately."),
+ *   description = @Translation("Adds menus to groups both publicly and privately."),
  *   entity_type_id = "menu",
  *   entity_access = TRUE,
  *   pretty_path_key = "menu",

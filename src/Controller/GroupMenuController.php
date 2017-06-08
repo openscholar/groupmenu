@@ -80,7 +80,7 @@ class GroupMenuController extends GroupContentController {
    *   The page title for the group menu overview page.
    */
   public function groupContentOverviewTitle(GroupInterface $group) {
-    return $this->t("%label menu's", ['%label' => $group->label()]);
+    return $this->t("%label menus", ['%label' => $group->label()]);
   }
 
   /**

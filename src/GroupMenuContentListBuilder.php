@@ -7,7 +7,7 @@ use Drupal\group\Entity\Controller\GroupContentListBuilder;
 use Drupal\group\Entity\GroupContentType;
 
 /**
- * Provides a list controller for menu's entities in a group.
+ * Provides a list controller for menus entities in a group.
  */
 class GroupMenuContentListBuilder extends GroupContentListBuilder {
 
@@ -59,7 +59,7 @@ class GroupMenuContentListBuilder extends GroupContentListBuilder {
    */
   public function render() {
     $build = parent::render();
-    $build['table']['#empty'] = $this->t("There are no menu's related to this group yet.");
+    $build['table']['#empty'] = $this->t("There are no menus related to this group yet.");
     return $build;
   }
 

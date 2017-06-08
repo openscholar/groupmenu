@@ -27,12 +27,12 @@ interface GroupMenuServiceInterface {
   public function menuAccess($op, MenuInterface $menu, AccountInterface $account = NULL);
 
   /**
-   * Load a list of menu's where a user can perform a operation.
+   * Load a list of menus where a user can perform a operation.
    *
    * @param string $op
    *   The operation to perform on the menu.
    * @param \Drupal\Core\Session\AccountInterface $account
-   *   The user to load the menu's for.
+   *   The user to load the menus for.
    *
    * @return \Drupal\system\MenuInterface[]
    *   An array of menu objects keyed by menu name.
@@ -40,18 +40,18 @@ interface GroupMenuServiceInterface {
   public function loadUserGroupMenus($op, AccountInterface $account = NULL);
 
   /**
-   * Load a list of menu's for a group where a user can perform a operation.
+   * Load a list of menus for a group where a user can perform a operation.
    *
    * @param string $op
    *   The operation to perform on the menu.
-   * @param \Drupal\group\Entity\GroupInterface $group
-   *   The group to get load the menu's from.
+   * @param int $group_id
+   *   The group ID to load the menus from.
    * @param \Drupal\Core\Session\AccountInterface $account
    *   Run access checks for this account.
    *
    * @return \Drupal\system\MenuInterface[]
    *   An array of menu objects keyed by menu name.
    */
-  public function loadUserGroupMenusByGroup($op, GroupInterface $group, AccountInterface $account = NULL);
+  public function loadUserGroupMenusByGroup($op, $group_id, AccountInterface $account = NULL);
 
 }

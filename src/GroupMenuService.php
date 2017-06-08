@@ -44,18 +44,25 @@ class GroupMenuService implements GroupMenuServiceInterface {
   protected $menuAccess = [];
 
   /**
-   * An array containing the menu's for a user.
+   * An array containing the menus for a user.
    *
    * @var array
    */
   protected $userMenus = [];
 
   /**
-   * An array containing the menu's for a user and group.
+   * An array containing the menus for a user and group.
    *
    * @var array
    */
   protected $userGroupMenus = [];
+
+  /**
+   * Static cache of all group menu objects keyed by group ID.
+   *
+   * @var \Drupal\system\MenuInterface[][]
+   */
+  protected $groupMenus = [];
 
   /**
    * Constructs a new GroupTypeController.
@@ -90,7 +97,8 @@ class GroupMenuService implements GroupMenuServiceInterface {
     }
 
     $plugin_id = 'group_menu:menu';
-    $group_content_types = GroupContentType::loadByContentPluginId($plugin_id);
+    $group_content_types = $this->entityTypeManager->getStorage('group_content_type')
+      ->loadByContentPluginId($plugin_id);
     if (empty($group_content_types)) {
       return $this->menuAccess[$op][$account->id()][$menu->id()] = AccessResult::neutral();
     }
@@ -140,11 +148,9 @@ class GroupMenuService implements GroupMenuServiceInterface {
     }
 
     $group_memberships = $this->membershipLoader->loadByUser($account);
-
     $this->userMenus[$op][$account->id()] = [];
     foreach ($group_memberships as $group_membership) {
-      /** @var \Drupal\group\GroupMembership $group_membership */
-      $this->userMenus[$op][$account->id()] += $this->loadUserGroupMenusByGroup($op, $group_membership->getGroup(), $account);
+      $this->userMenus[$op][$account->id()] += $this->loadUserGroupMenusByGroup($op, $group_membership->getGroupContent()->gid->target_id, $account);
     }
 
     return $this->userMenus[$op][$account->id()];
@@ -153,39 +159,51 @@ class GroupMenuService implements GroupMenuServiceInterface {
   /**
    * {@inheritdoc}
    */
-  public function loadUserGroupMenusByGroup($op, GroupInterface $group, AccountInterface $account = NULL) {
+  public function loadUserGroupMenusByGroup($op, $group_id, AccountInterface $account = NULL) {
     if (!isset($account)) {
       $account = $this->currentUser;
     }
 
-    if (isset($this->userGroupMenus[$op][$account->id()])) {
-      return $this->userGroupMenus[$op][$account->id()];
+    if (isset($this->userGroupMenus[$op][$account->id()][$group_id])) {
+      return $this->userGroupMenus[$op][$account->id()][$group_id];
     }
 
-    $plugin_id = 'group_menu:menu';
-    if (!$group->hasPermission("$op $plugin_id entity", $account)) {
-      return [];
+    $group_menus = $this->getGroupMenus();
+    $group_menu_for_group = (!empty($group_menus[$group_id])) ? $group_menus[$group_id] : [];
+
+    return $this->userGroupMenus[$op][$account->id()][$group_id] = $group_menu_for_group;
+  }
+
+  /**
+   * Get all group menu objects.
+   *
+   * We create a static cache of group menus since loading them individually
+   * has a big impact on performance.
+   *
+   * @return \Drupal\system\MenuInterface[][]
+   *   A nested array containing all group menu objects keyed by group ID.
+   */
+  public function getGroupMenus() {
+    if (!$this->groupMenus) {
+      $plugin_id = 'group_menu:menu';
+
+      $menus = $this->entityTypeManager->getStorage('menu')
+        ->loadMultiple();
+
+      $group_content_types = $this->entityTypeManager->getStorage('group_content_type')
+        ->loadByContentPluginId($plugin_id);
+      if (!empty($group_content_types)) {
+        $group_contents = $this->entityTypeManager->getStorage('group_content')
+          ->loadByProperties(['type' => array_keys($group_content_types)]);
+
+        foreach ($group_contents as $group_content) {
+          /** @var \Drupal\group\Entity\GroupContentInterface $group_content */
+          $this->groupMenus[$group_content->gid->target_id][$group_content->entity_id->target_id] = $menus[$group_content->entity_id->target_id];
+        }
+      }
     }
 
-    $group_content_types = GroupContentType::loadByContentPluginId($plugin_id);
-    if (empty($group_content_types)) {
-      return [];
-    }
-
-    // Load all the group menu content for the group id.
-    $group_contents = $this->entityTypeManager->getStorage('group_content')
-      ->loadByProperties([
-        'type' => array_keys($group_content_types),
-        'gid' => $group->id(),
-      ]);
-
-    $this->userGroupMenus[$op][$account->id()] = [];
-    foreach ($group_contents as $group_content) {
-      /** @var \Drupal\group\Entity\GroupContentInterface $group_content */
-      $this->userGroupMenus[$op][$account->id()][$group_content->getEntity()->id()] = $group_content->getEntity();
-    }
-
-    return $this->userGroupMenus[$op][$account->id()];
+    return $this->groupMenus;
   }
 
 }
