@@ -94,10 +94,11 @@ function groupmenu_form_alter(&$form, FormStateInterface $form_state, $form_id) 
  */
 function groupmenu_form_node_form_alter(&$form, FormStateInterface $form_state) {
   $account = \Drupal::currentUser();
-  if (!$account->hasPermission('administer menu')) {
-    // Filter all menu options for the current group.
-    /** @var \Drupal\group\Entity\GroupInterface $group */
-    $group = $form_state->getStorage()['group'];
+  // Filter all menu options when we are adding content in a group, or if we
+  // don't have permissions to edit all menu's.
+  /** @var \Drupal\group\Entity\GroupInterface $group */
+  $group = $form_state->getStorage()['group'];
+  if ($group || !$account->hasPermission('administer menu')) {
     $menu_options = &$form['menu']['link']['menu_parent']['#options'];
     if ($menu_options) {
       $menu_exist = groupmenu_filter_parent_options($menu_options, $group);
