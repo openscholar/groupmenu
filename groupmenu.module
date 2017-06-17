@@ -44,7 +44,7 @@ function groupmenu_entity_access(EntityInterface $entity, $op, AccountInterface 
   if (!($entity instanceof MenuInterface)) {
     return AccessResult::neutral();
   }
-  return \Drupal::service('groupmenu.menu')->menuAccess('edit', $entity, $account);
+  return \Drupal::service('groupmenu.menu')->menuAccess($op, $entity, $account);
 }
 
 /**

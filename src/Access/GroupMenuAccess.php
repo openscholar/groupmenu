@@ -17,7 +17,7 @@ class GroupMenuAccess implements GroupMenuAccessInterface {
    * {@inheritdoc}
    */
   public function menuEditAccess(AccountInterface $account, MenuInterface $menu) {
-    return \Drupal::service('groupmenu.menu')->menuAccess('edit', $menu, $account);
+    return \Drupal::service('groupmenu.menu')->menuAccess('update', $menu, $account);
   }
 
   /**
