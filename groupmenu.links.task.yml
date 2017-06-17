@@ -1,5 +1,5 @@
 group.menu:
-  title: "Menu's"
+  title: "Menus"
   base_route: 'entity.group.canonical'
   route_name: 'entity.group.menu'
   weight: 30

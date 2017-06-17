@@ -95,7 +95,7 @@ function groupmenu_form_alter(&$form, FormStateInterface $form_state, $form_id) 
 function groupmenu_form_node_form_alter(&$form, FormStateInterface $form_state) {
   $account = \Drupal::currentUser();
   // Filter all menu options when we are adding content in a group, or if we
-  // don't have permissions to edit all menu's.
+  // don't have permissions to edit all menus.
   /** @var \Drupal\group\Entity\GroupInterface $group */
   $group = $form_state->getStorage()['group'];
   if ($group || !$account->hasPermission('administer menu')) {
