@@ -153,3 +153,73 @@ function groupmenu_entity_type_alter(array &$entity_types) {
     $entity_types['menu']->setHandlerClass('list_builder', 'Drupal\groupmenu\GroupMenuListBuilder');
   }
 }
+
+/**
+ * Implements hook_preprocess_menu().
+ *
+ * Hides group menu's from admin menu.
+ */
+function groupmenu_preprocess_menu(&$variables) {
+  if (empty($variables['items'])) {
+    return;
+  }
+  // Ensure that menu_name exists.
+  if (!isset($variables['menu_name'])) {
+    // In rare cases (for unknown reasons) menu_name may not be set.
+    // As fallback, we can fetch it from the first menu item.
+    $first_link = reset($variables['items']);
+    /** @var Drupal\Core\Menu\MenuLinkDefault $original_link */
+    $original_link = $first_link['original_link'];
+    $variables['menu_name'] = $original_link->getMenuName();
+  }
+  if ($variables['menu_name'] == 'admin') {
+    // Get group types that enabled group menu's.
+    $plugin_id = 'group_menu:menu';
+    $group_content_types = \Drupal::entityTypeManager()->getStorage('group_content_type')
+      ->loadByProperties([
+        'content_plugin' => $plugin_id,
+      ]);
+    if (empty($group_content_types)) {
+      return;
+    }
+    _groupmenu_filter_admin_links($variables['items'], $group_content_types);
+  }
+}
+
+/**
+ * Helper function to hide group menu's from admin menu.
+ *
+ * @param array $items
+ *   The menu items to check for group menu's.
+ * @param array $group_content_types
+ *   The group content types that have group menu content enabled.
+ */
+function _groupmenu_filter_admin_links(array &$items, array $group_content_types) {
+  foreach ($items as $route => &$item) {
+    if (!empty($item['url'])) {
+      /** @var \Drupal\Core\Url $url */
+      $url = $item['url'];
+      $route_name = $url->getRouteName();
+      $route_params = $url->getRouteParameters();
+      if ($route_name === 'entity.menu.edit_form') {
+        $menu_name = $route_params['menu'];
+
+        // Check if this is a group menu.
+        $group_contents = \Drupal::entityTypeManager()->getStorage('group_content')
+          ->loadByProperties([
+            'type' => array_keys($group_content_types),
+            'entity_id' => $menu_name,
+          ]);
+        if (!empty($group_contents)) {
+          unset($items[$route]);
+        }
+        else {
+          if (!empty($items[$route]['below'])) {
+            // Recursively call this function for the child items.
+            _groupmenu_filter_admin_links($items[$route]['below'], $group_content_types);
+          }
+        }
+      }
+    }
+  }
+}
