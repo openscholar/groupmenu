@@ -46,6 +46,13 @@ class GroupMenuConfigOverrides implements ConfigFactoryOverrideInterface {
   protected $groupTypes;
 
   /**
+   * Statically cache overrides per node type.
+   *
+   * @var array[]
+   */
+  protected $overrides;
+
+  /**
    * Constructs the GroupMenuConfigOverrides object.
    *
    * @param \Drupal\Core\Config\StorageInterface $storage
@@ -70,25 +77,32 @@ class GroupMenuConfigOverrides implements ConfigFactoryOverrideInterface {
 
     if (!empty($node_type_names)) {
       foreach ($node_type_names as $node_type_name) {
-        $current_config = $this->getConfig($node_type_name);
-
-        // We first get a list of all group types where the node type plugin
-        // has enabled the setting to show group menus. With those group
-        // types we can get all the group menu content types to look for actual
-        // group menu content. Once we have the group menu content, we can
-        // check their groups to see if the user has permissions to edit the
-        // menus.
-        $group_types = $this->getEnabledGroupMenuTypesByNodeType($current_config['type']);
-        if ($group_types && $menus = $this->getUserGroupMenuIdsByGroupTypes($group_types, $this->currentUser)) {
-          $overrides[$node_type_name] = [
-            'third_party_settings' => [
-              'menu_ui' => [
-                'available_menus' => array_merge($current_config['third_party_settings']['menu_ui']['available_menus'], $menus),
-              ],
-            ],
-          ];
+        if (isset($this->overrides[$node_type_name])) {
+          $overrides[$node_type_name] = $this->overrides[$node_type_name];
         }
+        else {
+          $current_config = $this->getConfig($node_type_name);
 
+          // We first get a list of all group types where the node type plugin
+          // has enabled the setting to show group menus. With those group
+          // types we can get all the group menu content types to look for
+          // actual group menu content. Once we have the group menu content, we
+          // can check their groups to see if the user has permissions to edit
+          // the menus.
+          $group_types = $this->getEnabledGroupMenuTypesByNodeType($current_config['type']);
+          if ($group_types && $menus = $this->getUserGroupMenuIdsByGroupTypes($group_types, $this->currentUser)) {
+            $overrides[$node_type_name] = [
+              'third_party_settings' => [
+                'menu_ui' => [
+                  'available_menus' => array_merge($current_config['third_party_settings']['menu_ui']['available_menus'], $menus),
+                ],
+              ],
+            ];
+
+            // Add result to static cache.
+            $this->overrides[$node_type_name] = $overrides[$node_type_name];
+          }
+        }
       }
     }
 

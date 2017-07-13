@@ -5,8 +5,6 @@ namespace Drupal\groupmenu;
 use Drupal\Core\Access\AccessResult;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Session\AccountInterface;
-use Drupal\group\Entity\GroupContentType;
-use Drupal\group\Entity\GroupInterface;
 use Drupal\group\GroupMembershipLoader;
 use Drupal\system\MenuInterface;
 
