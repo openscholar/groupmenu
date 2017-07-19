@@ -3,6 +3,7 @@
 namespace Drupal\groupmenu;
 
 use Drupal\Core\Cache\CacheableMetadata;
+use Drupal\Core\Cache\CacheBackendInterface;
 use Drupal\Core\Config\ConfigFactoryOverrideInterface;
 use Drupal\Core\Config\StorageInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
@@ -32,18 +33,32 @@ class GroupMenuConfigOverrides implements ConfigFactoryOverrideInterface {
   protected $currentUser;
 
   /**
-   * An array of configuration arrays keyed by configuration name.
+   * The cache backend.
+   *
+   * @var \Drupal\Core\Cache\CacheBackendInterface
+   */
+  protected $cache;
+
+  /**
+   * Statically cache configurations keyed by configuration name.
    *
    * @var array
    */
   protected $configurations;
 
   /**
-   * An array of group types arrays keyed by node type.
+   * Statically cache group types keyed by node type.
    *
    * @var array
    */
   protected $groupTypes;
+
+  /**
+   * Statically cache the current users group menu IDs keyed by group type.
+   *
+   * @var array
+   */
+  protected $userGroupMenuIds;
 
   /**
    * Statically cache overrides per node type.
@@ -59,10 +74,13 @@ class GroupMenuConfigOverrides implements ConfigFactoryOverrideInterface {
    *   The configuration storage engine.
    * @param \Drupal\Core\Session\AccountInterface $current_user
    *   The current user.
+   * @param \Drupal\Core\Cache\CacheBackendInterface $cache
+   *   The cache backend.
    */
-  public function __construct(StorageInterface $storage, AccountInterface $current_user) {
+  public function __construct(StorageInterface $storage, AccountInterface $current_user, CacheBackendInterface $cache) {
     $this->baseStorage = $storage;
     $this->currentUser = $current_user;
+    $this->cache = $cache;
   }
 
   /**
@@ -90,7 +108,7 @@ class GroupMenuConfigOverrides implements ConfigFactoryOverrideInterface {
           // can check their groups to see if the user has permissions to edit
           // the menus.
           $group_types = $this->getEnabledGroupMenuTypesByNodeType($current_config['type']);
-          if ($group_types && $menus = $this->getUserGroupMenuIdsByGroupTypes($group_types, $this->currentUser)) {
+          if ($group_types && $menus = $this->getUserGroupMenuIdsByGroupTypes($group_types)) {
             $overrides[$node_type_name] = [
               'third_party_settings' => [
                 'menu_ui' => [
@@ -123,6 +141,13 @@ class GroupMenuConfigOverrides implements ConfigFactoryOverrideInterface {
       return $this->groupTypes[$node_type];
     }
 
+    $cid = 'groupmenu:group_menu_types:' . $node_type;
+    $persistent_cache = $this->cache->get($cid);
+    if ($persistent_cache && $persistent_cache->valid) {
+      $this->groupTypes[$node_type] = $persistent_cache->data;
+      return $this->groupTypes[$node_type];
+    }
+
     $plugin_id = 'group_node:' . $node_type;
     $group_content_types = GroupContentType::loadByContentPluginId($plugin_id);
 
@@ -135,6 +160,7 @@ class GroupMenuConfigOverrides implements ConfigFactoryOverrideInterface {
       }
     }
 
+    $this->cache->set($cid, $this->groupTypes[$node_type]);
     return $this->groupTypes[$node_type];
   }
 
@@ -147,7 +173,19 @@ class GroupMenuConfigOverrides implements ConfigFactoryOverrideInterface {
    * @return array
    *   An array of menu IDs.
    */
-  protected function getUserGroupMenuIdsByGroupTypes(array $group_types, AccountInterface $account) {
+  protected function getUserGroupMenuIdsByGroupTypes(array $group_types) {
+    $group_types_cid = md5(implode('-', $group_types));
+    if (isset($this->userGroupMenuIds[$this->currentUser->id()][$group_types_cid])) {
+      return $this->userGroupMenuIds[$this->currentUser->id()][$group_types_cid];
+    }
+
+    $cid = 'groupmenu:user_group_menu_ids:' . $this->currentUser->id() . ':' . $group_types_cid;
+    $persistent_cache = $this->cache->get($cid);
+    if ($persistent_cache && $persistent_cache->valid) {
+      $this->userGroupMenuIds[$this->currentUser->id()][$group_types_cid] = $persistent_cache->data;
+      return $this->userGroupMenuIds[$this->currentUser->id()][$group_types_cid];
+    }
+
     // We can't use dependency injection for entity type manager, since this
     // will cause circular dependencies.
     $entity_type_manager = \Drupal::service('entity_type.manager');
@@ -169,15 +207,16 @@ class GroupMenuConfigOverrides implements ConfigFactoryOverrideInterface {
       ]);
 
     // Check access and add menus to config.
-    $menus = [];
+    $this->userGroupMenuIds[$this->currentUser->id()][$group_types_cid] = [];
     foreach ($group_contents as $group_content) {
       /** @var \Drupal\group\Entity\GroupContentInterface $group_content */
-      if ($group_content->getGroup()->hasPermission("update $plugin_id entity", $account)) {
-        $menus[] = $group_content->getEntity()->id();
+      if ($group_content->getGroup()->hasPermission("update $plugin_id entity", $this->currentUser)) {
+        $this->userGroupMenuIds[$this->currentUser->id()][$group_types_cid][] = $group_content->getEntity()->id();
       }
     }
 
-    return $menus;
+    $this->cache->set($cid, $this->userGroupMenuIds[$this->currentUser->id()][$group_types_cid]);
+    return $this->userGroupMenuIds[$this->currentUser->id()][$group_types_cid];
   }
 
   /**

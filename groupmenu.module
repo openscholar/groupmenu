@@ -12,9 +12,9 @@ use Drupal\Core\Session\AccountInterface;
 use Drupal\gnode\Plugin\GroupContentEnabler\GroupNode;
 use Drupal\group\Entity\Group;
 use Drupal\group\Entity\GroupContent;
+use Drupal\group\Entity\GroupContentInterface;
 use Drupal\group\Entity\GroupContentType;
 use Drupal\group\Entity\Form\GroupContentTypeForm;
-use Drupal\group\Entity\GroupInterface;
 use Drupal\menu_link_content\Form\MenuLinkContentForm;
 use Drupal\menu_ui\Form\MenuLinkEditForm;
 use Drupal\system\MenuInterface;
@@ -246,5 +246,23 @@ function _groupmenu_filter_admin_links(array &$items, array $group_content_types
         }
       }
     }
+  }
+}
+
+/**
+ * Implements hook_entity_update().
+ */
+function groupmenu_entity_update(EntityInterface $entity) {
+  if ($entity instanceof GroupContentInterface && $entity->getContentPlugin()->getPluginId() === 'group_menu:menu') {
+    \Drupal::service('cache.groupmenu')->invalidateAll();
+  }
+}
+
+/**
+ * Implements hook_entity_delete().
+ */
+function groupmenu_entity_delete(EntityInterface $entity) {
+  if ($entity instanceof GroupContentInterface && $entity->getContentPlugin()->getPluginId() === 'group_menu:menu') {
+    \Drupal::service('cache.groupmenu')->invalidateAll();
   }
 }
