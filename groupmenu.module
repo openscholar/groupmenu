@@ -250,6 +250,13 @@ function _groupmenu_filter_admin_links(array &$items, array $group_content_types
 }
 
 /**
+ * Implements hook_entity_insert().
+ */
+function groupmenu_entity_insert(EntityInterface $entity) {
+  groupmenu_entity_update($entity);
+}
+
+/**
  * Implements hook_entity_update().
  */
 function groupmenu_entity_update(EntityInterface $entity) {
