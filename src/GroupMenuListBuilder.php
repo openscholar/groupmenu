@@ -17,7 +17,7 @@ class GroupMenuListBuilder extends MenuListBuilder {
     $plugin_id = 'group_menu:menu';
     $group_content_types = GroupContentType::loadByContentPluginId($plugin_id);
     if (empty($group_content_types)) {
-      return [];
+      return parent::getEntityIds();
     }
 
     // Load all the group menu content to exclude.
