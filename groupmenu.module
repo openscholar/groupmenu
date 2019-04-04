@@ -192,10 +192,11 @@ function groupmenu_preprocess_menu(&$variables) {
   if (!isset($variables['menu_name'])) {
     // In rare cases (for unknown reasons) menu_name may not be set.
     // As fallback, we can fetch it from the first menu item.
+    $variables['menu_name'] = NULL;
     $first_link = reset($variables['items']);
-    /** @var Drupal\Core\Menu\MenuLinkDefault $original_link */
-    $original_link = $first_link['original_link'];
-    $variables['menu_name'] = $original_link->getMenuName();
+    if (isset($first_link['original_link'])) {
+      $variables['menu_name'] = $first_link['original_link']->getMenuName();
+    }
   }
   if ($variables['menu_name'] == 'admin') {
     // Get group types that enabled group menu's.
