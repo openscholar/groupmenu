@@ -197,7 +197,7 @@ class GroupMenuService implements GroupMenuServiceInterface {
         foreach ($group_contents as $group_content) {
           // Make sure the group and entity IDs are set in the group content
           // entity.
-          if (isset($group_content->gid->target_id) && isset($group_content->entity_id->target_id)) {
+          if (!isset($group_content->gid->target_id) || !isset($group_content->entity_id->target_id)) {
             continue;
           }
           /** @var \Drupal\group\Entity\GroupContentInterface $group_content */
