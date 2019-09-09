@@ -7,6 +7,7 @@ use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\group\GroupMembershipLoader;
 use Drupal\system\MenuInterface;
+use Drupal\group\Entity\GroupContent;
 
 /**
  * Checks access for displaying menu pages.
@@ -105,7 +106,7 @@ class GroupMenuService implements GroupMenuServiceInterface {
     $group_contents = $this->entityTypeManager->getStorage('group_content')
       ->loadByProperties([
         'type' => array_keys($group_content_types),
-        'entity_id' => $menu->id(),
+        GroupContent::getEntityFieldNameForEntityType('menu') => $menu->id(),
       ]);
 
     // If the menu does not belong to any group, we have nothing to say.
@@ -195,13 +196,15 @@ class GroupMenuService implements GroupMenuServiceInterface {
           ->loadByProperties(['type' => array_keys($group_content_types)]);
 
         foreach ($group_contents as $group_content) {
+          // Getting the right entity id field.
+          $group_content_field = $group_content->getEntityFieldName();
           // Make sure the group and entity IDs are set in the group content
           // entity.
-          if (!isset($group_content->gid->target_id) || !isset($group_content->entity_id->target_id)) {
+          if (!isset($group_content->gid->target_id) || !isset($group_content->{$group_content_field}->target_id)) {
             continue;
           }
           /** @var \Drupal\group\Entity\GroupContentInterface $group_content */
-          $this->groupMenus[$group_content->gid->target_id][$group_content->entity_id->target_id] = $menus[$group_content->entity_id->target_id];
+          $this->groupMenus[$group_content->gid->target_id][$group_content->{$group_content_field}->target_id] = $menus[$group_content->{$group_content_field}->target_id];
         }
       }
     }
