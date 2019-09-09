@@ -5,7 +5,7 @@ services:
       - { name: event_subscriber }
   groupmenu.menu:
     class: Drupal\groupmenu\GroupMenuService
-    arguments: ['@entity_type.manager', '@current_user', '@group.membership_loader']
+    arguments: ['@entity_type.manager', '@current_user', '@group.membership_loader', '@config.factory']
   groupmenu.config_overrides:
     class: \Drupal\groupmenu\GroupMenuConfigOverrides
     arguments: ['@config.storage', '@current_user', '@cache.groupmenu']
