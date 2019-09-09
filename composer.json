@@ -1,0 +1,10 @@
+{
+    "name": "drupal/groupmenu",
+    "description": "Gives the ability to create and manage menus for groups.",
+    "type": "drupal-module",
+    "license": "GPL-2.0+",
+    "minimum-stability": "dev",
+    "require": {
+        "drupal/group": "^1.0-rc2"
+    }
+}
