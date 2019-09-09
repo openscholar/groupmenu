@@ -46,3 +46,8 @@ This is inspired by OG Menu and adapted to work with the Group module.
 Current maintainers:
  * Mike Davis (mike.davis) - https://www.drupal.org/u/mikedavis
  * Sean Blommaert (seanB) - https://www.drupal.org/u/seanB
+
+# What this fork includes:
+* Patch - Change references to `entity_id` field in group content - https://www.drupal.org/project/groupmenu/issues/3010909#comment-13054859
+* Fix for PHP error in node create pages when accessed from outside vsite
+* Fix for PHP warning when there are multiple vsites with it's own menus

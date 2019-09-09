@@ -237,7 +237,7 @@ function _groupmenu_filter_admin_links(array &$items, array $group_content_types
         $group_contents = \Drupal::entityTypeManager()->getStorage('group_content')
           ->loadByProperties([
             'type' => array_keys($group_content_types),
-            'entity_id' => $menu_name,
+            GroupContent::getEntityFieldNameForEntityType('menu') => $menu_name,
           ]);
         if (!empty($group_contents)) {
           unset($items[$route]);
